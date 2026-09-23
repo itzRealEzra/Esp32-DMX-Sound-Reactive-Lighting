@@ -1,9 +1,3 @@
-# ESP32 DMX Sound Reactive Lighting Controller
-
-A real-time ESP32-based DMX512 lighting controller that reacts to sound using a MAX9814 microphone module. Controls PAR lights and a moving head with smooth motion and audio-reactive RGB effects.
-
----
-
 ## Features
 
 - DMX512 output (512 channels)
