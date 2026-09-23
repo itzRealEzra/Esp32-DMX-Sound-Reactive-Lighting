@@ -85,8 +85,8 @@ const int soundHold = 350;         // keeps RGB active after sound
 // r_t/g_t/b_t = target color (sound or idle mode)
 // ======================================================
 
-float r_s = 255, g_s = 210, b_s = 120;
-float r_t = 255, g_t = 210, b_t = 120;
+float r_s = 255, g_s = 255, b_s = 255;
+float r_t = 255, g_t = 255, b_t = 255;
 
 float hue = 0; // used for RGB cycling in sound mode
 
@@ -179,7 +179,7 @@ float readMic() {
   // envelope follower (smooth audio energy)
   envelope = envelope * 0.75 + centered * 0.25;
 
-  float level = envelope / (noiseFloor * 6.0);
+  float level = envelope / (noiseFloor * 3.2);
   level = constrain(level, 0.0, 1.0);
 
   return level;
@@ -206,12 +206,12 @@ void updateLighting(bool soundActive) {
     b_t = sin(hue + 4.188) * 127 + 128;
 
   }
-  // IDLE MODE: WARM WHITE
+  // IDLE MODE: TRUE WHITE
   else {
 
     r_t = 255;
-    g_t = 210;
-    b_t = 120;
+    g_t = 255;
+    b_t = 255;
   }
 
   // smooth color transition
