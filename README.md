@@ -4,6 +4,16 @@ An ESP32 listens to the room through a MAX9814 microphone, converts the level to
 
 ---
 
+## Sketches in This Repo
+
+| File | What it is |
+| ---- | ---------- |
+| `sound_reactive_dmx.ino` | dB-calibrated version: white idle, then red, blue, green by loudness (described below) |
+| `original_pure_white.ino` | Original version: white idle, RGB cycling on sound |
+| `ota_sound_reactive_dmx.ino` | Original behavior plus WiFi OTA updates, a fixed 50 Hz tick, and a faster audio path (see [OTA Variant](#ota-variant)) |
+
+---
+
 ## Features
 
 - DMX512 output (512 channels, ~43 Hz frame rate)
@@ -167,6 +177,30 @@ Keep `tiltCenter ± tiltAmp` and `panCenter ± panAmp` inside 0 to 255, or the f
 | Colors stay stuck on a lower level after loud hits | A/R pin is floating or on VDD. Tie it to GND. |
 | Lights flicker between two colors | Raise `HYST_DB`. |
 | Fixtures don't respond | Check the fixture start addresses against the DMX Addressing table and the DE/RE wiring on GPIO21. |
+
+---
+
+## OTA Variant
+
+`ota_sound_reactive_dmx.ino` keeps the white-idle / RGB-cycling behavior of `original_pure_white.ino` and adds wireless updates and timing fixes.
+
+**What changed**
+
+- **ArduinoOTA:** flash over WiFi with `espota.py`. OTA only starts once WiFi connects, so the lights still run with no network. The lights blackout while an update runs.
+- **Short DMX frames:** only 32 slots are sent (start code plus channels 1 to 31, covering the highest used channel, 25). A frame drops from about 22.7 ms to about 1.7 ms.
+- **Fixed 20 ms tick (50 Hz):** the mic, color smoothing, and movement all run on one steady tick, so every smoothing constant means what it says.
+- **Burst-sampled mic:** each tick samples the ADC 128 times and uses half the peak-to-peak swing. This removes the hardcoded 2048 DC center, which was wrong for the MAX9814 bias point.
+- **Adaptive noise floor:** the floor creeps toward ambient noise during silence, so a louder room no longer latches sound mode on.
+- **Tilt range fixed:** `tiltCenter` is 175, so the figure-8 spans 95 to 255 and no longer clips flat at the top.
+- **Wrapped time base:** `t` wraps at 2π so float precision never degrades on long runs.
+
+**Setup**
+
+1. Copy `secrets.h.example` to `secrets.h` in the same folder as the sketch and fill in your 2.4 GHz WiFi details and an OTA password. `secrets.h` is gitignored, so credentials are never committed.
+2. Flash once over USB. After that, updates can go over WiFi.
+3. Tune clap sensitivity with the `2.5f` peak threshold in `loop()`. Move it in 0.25 steps until claps trigger and normal conversation doesn't.
+
+**OTA security:** ArduinoOTA is password-challenged but not encrypted. Use a long random OTA password and keep the controller on a trusted or isolated network.
 
 ---
 
