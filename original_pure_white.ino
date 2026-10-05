@@ -26,7 +26,7 @@ uint8_t dmx[DMX_CHANNELS + 1];
 // ======================================================
 // PAR LIGHT CHANNEL MAPPING (RGB FIXTURE)
 // ======================================================
-
+// ADD PAR_DIM
 #define PAR_RED    1
 #define PAR_GREEN  2
 #define PAR_BLUE   3
