@@ -1,6 +1,39 @@
 # ESP32 DMX Sound Reactive Lighting
 
-An ESP32 listens to the room through a MAX9814 microphone, converts the level to dB, and drives a DMX512 PAR light and moving head to match. Quiet is pure white. As the room gets louder, the color steps from red to blue to green.
+[![ESP32](https://img.shields.io/badge/MCU-ESP32-red)](https://www.espressif.com/en/products/socs/esp32) [![DMX512](https://img.shields.io/badge/Lighting-DMX512-blue)](https://en.wikipedia.org/wiki/DMX512) [![License](https://img.shields.io/badge/License-Open%20Source-green)](#license)
+
+A real-time **ESP32 sound-reactive DMX lighting controller** built around a **MAX9814 microphone** and an **RS485/DMX512 interface**. The controller measures room loudness, converts it into calibrated dB values, and uses those levels to drive an RGB PAR light and a moving-head fixture.
+
+The default behavior is simple: **quiet = pure white**, then **red → blue → green** as the sound level rises. The project also includes an **OTA-enabled variant** for wireless firmware updates.
+
+> Built for practical stage-lighting experiments with the ESP32, DMX512, microphone signal processing, and sound-reactive effects.
+
+---
+
+## Quick Start
+
+1. Connect the MAX9814 microphone and RS485/DMX interface using the wiring tables below.
+2. Set the RGB PAR to DMX start address **1**.
+3. Set the moving head to DMX start address **17**.
+4. Open `sound_reactive_dmx.ino` in Arduino IDE and select your ESP32 board and COM port.
+5. Upload the sketch and open Serial Monitor at **115200 baud**.
+6. Play steady sound and calibrate with `cal <dB>`, for example `cal 82.5`.
+7. Start playing music and the lights will react to the measured loudness.
+
+For wireless updates, use `ota_sound_reactive_dmx.ino` after creating `secrets.h` from `secrets.h.example`.
+
+---
+
+## Project Structure
+
+| Path | Purpose |
+| ---- | ------- |
+| `sound_reactive_dmx.ino` | Main calibrated dB-based implementation. |
+| `original_pure_white.ino` | Original sound-reactive implementation. |
+| `ota_sound_reactive_dmx.ino` | WiFi OTA variant with the newer timing/audio path. |
+| `secrets.h.example` | Template for WiFi and OTA credentials. |
+| `new_implementation/` | Development / implementation files. |
+| `.gitignore` | Keeps local/private files such as `secrets.h` out of Git. |
 
 ---
 
@@ -11,6 +44,30 @@ An ESP32 listens to the room through a MAX9814 microphone, converts the level to
 | `sound_reactive_dmx.ino` | dB-calibrated version: white idle, then red, blue, green by loudness (described below) |
 | `original_pure_white.ino` | Original version: white idle, RGB cycling on sound |
 | `ota_sound_reactive_dmx.ino` | Original behavior plus WiFi OTA updates, a fixed 50 Hz tick, and a faster audio path (see [OTA Variant](#ota-variant)) |
+
+---
+
+## Features
+
+- 🎤 MAX9814 microphone input for real-time sound detection
+- 💡 DMX512 output for RGB PAR and moving-head fixtures
+- 🌈 Sound-reactive color zones: white → red → blue → green
+- 🔆 Reactive PAR brightness and moving-head motion
+- 🔄 Figure-8 pan/tilt animation with sound-reactive speed
+- 🧠 3 dB hysteresis to reduce color flicker around thresholds
+- 📈 Calibrated dB readings with the offset saved to ESP32 flash
+- ⚠️ Microphone clipping detection
+- ⚙️ FreeRTOS audio processing in the standard implementation
+- 📡 Optional ArduinoOTA wireless firmware updates
+
+### Technical Details
+
+- DMX512 output (up to 512 channels, ~43 Hz standard frame rate)
+- Loudness measured in dB SPL, calibrated over Serial and saved to flash
+- dB color zones: pure white idle, then red, blue, green as the level rises
+- PAR brightness pulses with the sound inside each color zone
+- Moving-head figure-8 motion speeds up with loudness
+- Audio sampling runs independently so microphone processing does not block the normal DMX control loop
 
 ---
 
@@ -204,6 +261,14 @@ Keep `tiltCenter ± tiltAmp` and `panCenter ± panAmp` inside 0 to 255, or the f
 
 ---
 
+## Development Notes
+
+The repository intentionally keeps the original and newer implementations side by side. This makes it easier to compare the original lighting behavior with the calibrated dB implementation and the WiFi/OTA variant without losing the earlier version.
+
+The most important values to tune are the sound-zone thresholds, hysteresis, brightness mapping, and moving-head pan/tilt range. Keep the final DMX movement values inside **0–255** to avoid clipping.
+
+---
+
 ## Notes
 
 - AGC (automatic gain control) is built into the MAX9814 and compresses loud sound. Expect the dB readings to be approximate and to drift a few dB with the program material.
@@ -216,3 +281,18 @@ Keep `tiltCenter ± tiltAmp` and `panCenter ± panAmp` inside 0 to 255, or the f
 ## License
 
 Open-source; modify for personal or commercial use.
+
+---
+
+## Credits
+
+Built with:
+
+- **ESP32** for processing and DMX control
+- **MAX9814** for microphone amplification and automatic gain control
+- **RS485 transceiver** for DMX physical-layer communication
+- **DMX512 fixtures** for the lighting output
+
+---
+
+⭐ If this project helps with your lighting setup or experimentation, consider starring the repository.
